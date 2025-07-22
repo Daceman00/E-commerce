@@ -1,6 +1,7 @@
 import styles from "./MainPage.module.css";
 import Header from "../../components/Header/Header";
 import Footer from "../../components/Footer/Footer";
+import ProductsGrid from "../../components/ProductsGrid/ProductsGrid";
 
 const MainPage = () => {
   return (
@@ -13,8 +14,7 @@ const MainPage = () => {
           <div className={styles.contentPlaceholder}>
             <h2 className={styles.placeholderTitle}>Main Content Area</h2>
             <p className={styles.placeholderText}>
-              This is where your main e-commerce content will go (product
-              listings, hero section, etc.)
+              <ProductsGrid />
             </p>
           </div>
         </div>
