@@ -1,22 +1,10 @@
 import { Eye, Heart, ShoppingCart, Star } from "lucide-react";
 import { useState } from "react";
 import styles from "./ProductItem.module.css";
-
-type Product = {
-  id: number;
-  brand: string;
-  name: string;
-  image: string;
-  currentPrice: number;
-  originalPrice: number | null;
-  rating: number;
-  reviewCount: number;
-  badge: string | null;
-  inStock: boolean;
-};
+import type { ProductItem as ProductItemType } from "../../features/Products/ProductTypes";
 
 type ProductItemProps = {
-  product: Product;
+  product: ProductItemType;
   viewMode: string;
   onAddToCart?: (id: number) => void;
   onQuickView?: (id: number) => void;
@@ -50,7 +38,7 @@ const ProductItem: React.FC<ProductItemProps> = ({ product, viewMode, onAddToCar
     return (
       <div className={styles.productItem + (viewMode === 'list' ? ' ' + styles.listView : '')}>
         <div className={styles.imageContainer}>
-          <img src={product.image} alt={product.name} className={styles.productImage} />
+          <img src={product.image} alt={product.category} className={styles.productImage} />
           
           <div className={styles.imageOverlay}>
             <button className={styles.overlayBtn} title="Quick view" onClick={() => onQuickView?.(product.id)}>
@@ -60,10 +48,6 @@ const ProductItem: React.FC<ProductItemProps> = ({ product, viewMode, onAddToCar
               <ShoppingCart size={20} />
             </button>
           </div>
-  
-          {product.badge && (
-            <div className={styles.badge}>{product.badge}</div>
-          )}
   
           <button 
             className={styles.wishlistBtn + (isWishlisted ? ' ' + styles.active : '')}
@@ -75,18 +59,17 @@ const ProductItem: React.FC<ProductItemProps> = ({ product, viewMode, onAddToCar
         </div>
   
         <div className={styles.productContent}>
-          <div className={styles.productBrand}>{product.brand}</div>
-          <h3 className={styles.productName}>{product.name}</h3>
+          <div className={styles.productBrand}>{product.category}</div>
           
           <div className={styles.ratingContainer}>
-            <div className={styles.stars}>{renderStars(product.rating)}</div>
-            <span className={styles.ratingText}>({product.reviewCount})</span>
+            <div className={styles.stars}>{renderStars(product.rating.rate)}</div>
+            <span className={styles.ratingText}>({product.rating.count})</span>
           </div>
   
           <div className={styles.priceContainer}>
-            <span className={styles.currentPrice}>${product.currentPrice}</span>
-            {product.originalPrice && (
-              <span className={styles.originalPrice}>${product.originalPrice}</span>
+            <span className={styles.currentPrice}>${product.price}</span>
+            {product.price && (
+              <span className={styles.originalPrice}>${product.price}</span>
             )}
           </div>
   
