@@ -13,7 +13,7 @@ import CreateProduct from "../CreateProduct/CreateProduct";
 
 
 const ProductsGrid = () => {
-  const {products, status, error} = useSelector((state: RootState) => state.products)
+  const {products, status} = useSelector((state: RootState) => state.products)
   const {modalType} = useSelector((state: RootState) => state.modals)
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [sortBy, setSortBy] = useState('featured');
@@ -258,7 +258,7 @@ const ProductsGrid = () => {
                   </div>
               )}
           </div>
-          {modalType === "CreateProduct" && <CreateProduct />}
+          {modalType === "CreateProduct" && <CreateProduct products={products} />}
       </div>
   )
 }
