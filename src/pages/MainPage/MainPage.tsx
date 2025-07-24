@@ -4,6 +4,7 @@ import Footer from "../../components/Footer/Footer";
 import ProductsGrid from "../../components/ProductsGrid/ProductsGrid";
 
 const MainPage = () => {
+  
   return (
     <div className={styles.app}>
       <Header />
@@ -19,7 +20,6 @@ const MainPage = () => {
           </div>
         </div>
       </main>
-
       <Footer />
     </div>
   );

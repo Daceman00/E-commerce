@@ -1,4 +1,4 @@
-import { ChevronDown, Filter, Grid, List, Search } from "lucide-react"
+import { ChevronDown, Filter, Grid, List, Search, Plus } from "lucide-react"
 import { useCallback, useEffect, useState } from "react"
 import ProductItem from "../ProductItem/ProductItem";
 import styles from "./ProductsGrid.module.css";
@@ -7,11 +7,14 @@ import type { AppDispatch } from "../../store/store";
 import type { RootState } from "../../store/store";
 import { fetchProducts } from "../../features/Products/ProductThunks";
 import type { ProductItem as ProductItemType } from "../../features/Products/ProductTypes";
+import { openModal } from "../../features/Modals/ModalSlice";
+import CreateProduct from "../CreateProduct/CreateProduct";
 
 
 
 const ProductsGrid = () => {
   const {products, status, error} = useSelector((state: RootState) => state.products)
+  const {modalType} = useSelector((state: RootState) => state.modals)
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [sortBy, setSortBy] = useState('featured');
   const [displayedProducts, setDisplayedProducts] = useState<ProductItemType[]>([]);
@@ -57,6 +60,11 @@ const ProductsGrid = () => {
   const handleSortChange = (sortValue: string) => {
       setSortBy(sortValue);
       setIsSortDropdownOpen(false);
+  };
+
+  const handleCreateProduct = () => {
+      // Placeholder for create product logic/modal
+      dispatch(openModal('CreateProduct'))
   };
   
   return (
@@ -113,6 +121,15 @@ const ProductsGrid = () => {
                   </div>
 
                   <div className={styles.controlsRight}>
+                      {/* Create New Product Button */}
+                      <button 
+                          className={styles.createProductButton}
+                          onClick={handleCreateProduct}
+                          title="Create New Product"
+                      >
+                          <Plus size={16} style={{ marginRight: 6 }} />
+                          Create New Product
+                      </button>
                       {/* Items per page */}
                       <div className={styles.itemsPerPage}>
                           <span className={styles.label}>Show:</span>
@@ -241,6 +258,7 @@ const ProductsGrid = () => {
                   </div>
               )}
           </div>
+          {modalType === "CreateProduct" && <CreateProduct />}
       </div>
   )
 }
