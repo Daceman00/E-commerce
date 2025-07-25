@@ -5,25 +5,34 @@ import { useDispatch } from "react-redux";
 import type { AppDispatch} from "../../store/store";
 import { closeModal } from "../../features/Modals/ModalSlice";
 import type { ProductItem } from "../../features/Products/ProductTypes";
+import { createPortal } from "react-dom";
+import { useForm } from "react-hook-form";
+import { resolver, type FormValues } from "./CreateProductForm";
+import { useRef } from "react"
+
 
 type CreateProductProps = {
   products: ProductItem[];
 };
 
+
 const CreateProduct = ({products}: CreateProductProps) => {
     const [selectedImage, setSelectedImage] = useState<string>('');
     const [dragOver, setDragOver] = useState(false);
-    
-    
     const dispatch = useDispatch<AppDispatch>()
+    const {register, handleSubmit, formState: {errors}, setValue} = useForm<FormValues>({resolver});
+    const fileInputRef = useRef<HTMLInputElement | null>(null);
 
     const categories = Array.from(new Set(products.map(product => product.category)));
 
+    const onSubmit = handleSubmit((data) => console.log(data))
 
-    return (
+    return createPortal(
         <div className={styles.modalOverlay} >
+            <form id="product-form" onSubmit={onSubmit}>
             <div className={styles.modalContainer} onClick={(e) => e.stopPropagation()}>
                 {/* Modal Header */}
+                
                 <div className={styles.modalHeader}>
                     <div className={styles.headerContent}>
                         <div className={styles.headerInfo}>
@@ -31,11 +40,11 @@ const CreateProduct = ({products}: CreateProductProps) => {
                             <p className={styles.subtitle}>Add a new product to your collection</p>
                         </div>
                         <div className={styles.headerActions}>
-                            <button className={styles.previewButton}>
+                            <button type="button" className={styles.previewButton}>
                                 <Eye size={16} />
                                 Preview
                             </button>
-                            <button className={styles.closeButton} onClick={() => dispatch(closeModal())}>
+                            <button type="button" className={styles.closeButton} onClick={() => dispatch(closeModal())} title="Close">
                                 <X size={20} />
                             </button>
                         </div>
@@ -44,7 +53,7 @@ const CreateProduct = ({products}: CreateProductProps) => {
 
                 {/* Modal Body */}
                 <div className={styles.modalBody}>
-                    <div className={styles.tabContent}>
+                    <div className={styles.tabContent} >
                         <div className={styles.formGrid}>
                             {/* Basic Product Information */}
                             <div className={styles.formSection}>
@@ -56,8 +65,11 @@ const CreateProduct = ({products}: CreateProductProps) => {
                                         type="text"
                                         className={styles.input}
                                         placeholder="Enter product title"
-                                        
+                                        {...register("title")}
                                     />
+                                    {errors.title && (
+                                        <span className={styles.errorMessage}>{errors.title.message as string}</span>
+                                    )}
                                 </div>
 
                                 <div className={styles.formGroup}>
@@ -66,7 +78,7 @@ const CreateProduct = ({products}: CreateProductProps) => {
                                         className={styles.select} 
                                         id="category-select" 
                                         title="Category"
-                                       
+                                        {...register("category")}
                                     >
                                         <option value="">Select category</option>
                                         {categories.map((category) => (
@@ -75,6 +87,9 @@ const CreateProduct = ({products}: CreateProductProps) => {
                                             </option>
                                         ))}
                                     </select>
+                                    {errors.category && (
+                                        <span className={styles.errorMessage}>{errors.category.message as string}</span>
+                                    )}
                                 </div>
 
                                 <div className={styles.formGroup}>
@@ -87,9 +102,12 @@ const CreateProduct = ({products}: CreateProductProps) => {
                                             placeholder="0.00"
                                             step="0.01"
                                             min="0"
-                                           
+                                           {...register("price")}
                                         />
                                     </div>
+                                    {errors.price && (
+                                        <span className={styles.errorMessage}>{errors.price.message as string}</span>
+                                    )}
                                 </div>
 
                                 <div className={styles.formGroup}>
@@ -98,8 +116,11 @@ const CreateProduct = ({products}: CreateProductProps) => {
                                         className={styles.textarea}
                                         rows={4}
                                         placeholder="Describe the product features, materials, and benefits..."
-                                        
+                                        {...register("description")}
                                     />
+                                    {errors.description && (
+                                        <span className={styles.errorMessage}>{errors.description.message as string}</span>
+                                    )}
                                 </div>
                             </div>
 
@@ -118,6 +139,7 @@ const CreateProduct = ({products}: CreateProductProps) => {
                                         placeholder="https://example.com/image.jpg"
                                         
                                     />
+                                    {/* If you want to show image URL errors, add here */}
                                 </div>
 
                                 <div className={styles.divider}>
@@ -128,20 +150,56 @@ const CreateProduct = ({products}: CreateProductProps) => {
                                     className={`${styles.uploadArea} ${dragOver ? styles.dragOver : ''}`}
                                     onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
                                     onDragLeave={() => setDragOver(false)}
-                                    onDrop={(e) => { e.preventDefault(); setDragOver(false); }}
+                                    onDrop={(e) => {
+                                        e.preventDefault();
+                                        setDragOver(false);
+                                        const file = e.dataTransfer.files && e.dataTransfer.files[0];
+                                        if (file && file.type.startsWith('image/')) {
+                                            const reader = new FileReader();
+                                            reader.onload = (ev) => {
+                                                const imageUrl = ev.target?.result as string;
+                                                setSelectedImage(imageUrl);
+                                                setValue('image', imageUrl, { shouldValidate: true });
+                                            };
+                                            reader.readAsDataURL(file);
+                                        }
+                                    }}
                                 >
                                     <div className={styles.uploadContent}>
                                         <ImageIcon size={48} className={styles.uploadIcon} />
                                         <h4 className={styles.uploadTitle}>Drag & drop image here</h4>
                                         <p className={styles.uploadText}>or click to browse files</p>
-                                        <button className={styles.uploadButton} type="button">
+                                        <button
+                                            className={styles.uploadButton}
+                                            type="button"
+                                            onClick={() => fileInputRef.current?.click()}
+                                        >
                                             <Upload size={16} />
                                             Choose File
                                         </button>
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            style={{ display: 'none' }}
+                                            ref={fileInputRef}
+                                            aria-label="Upload product image"
+                                            onChange={(e) => {
+                                                const file = e.target.files && e.target.files[0];
+                                                if (file && file.type.startsWith('image/')) {
+                                                    const reader = new FileReader();
+                                                    reader.onload = (ev) => {
+                                                        const imageUrl = ev.target?.result as string;
+                                                        setSelectedImage(imageUrl);
+                                                        setValue('image', imageUrl, { shouldValidate: true });
+                                                    };
+                                                    reader.readAsDataURL(file);
+                                                }
+                                            }}
+                                        />
                                     </div>
                                 </div>
 
-                                {(selectedImage ) && (
+                                {selectedImage && (
                                     <div className={styles.imagePreview}>
                                         <h4 className={styles.previewTitle}>Image Preview</h4>
                                         <div className={styles.imageItem}>
@@ -150,16 +208,23 @@ const CreateProduct = ({products}: CreateProductProps) => {
                                                 alt="Product preview" 
                                                 className={styles.previewImage} 
                                             />
-                                            <button 
+                                            <button type="button" 
                                                 className={styles.removeImage} 
                                                 aria-label="Remove image" 
                                                 title="Remove image"
-                                               
+                                                onClick={() => {
+                                                    setSelectedImage("");
+                                                    setValue('image', '', { shouldValidate: true });
+                                                }}
                                             >
                                                 <X size={16} />
                                             </button>
                                         </div>
                                     </div>
+                                )}
+                                {/* If you want to show image upload errors, add here */}
+                                {errors.image && (
+                                    <span className={styles.errorMessage}>{errors.image.message as string}</span>
                                 )}
                             </div>
                         </div>
@@ -168,21 +233,21 @@ const CreateProduct = ({products}: CreateProductProps) => {
 
                 {/* Modal Footer */}
                 <div className={styles.modalFooter}>
-                    <button className={styles.cancelButton} onClick={() => dispatch(closeModal())}>
+                    <button type="button" className={styles.cancelButton} onClick={() => dispatch(closeModal())}>
                         Cancel
                     </button>
                     <div className={styles.footerActions}>
-                        <button className={styles.draftButton}>
-                            Save as Draft
-                        </button>
-                        <button className={styles.publishButton}>
+                        <button type="submit" className={styles.publishButton}>
                             <Save size={16} />
                             Create Product
                         </button>
                     </div>
                 </div>
+              
             </div>
-        </div>
+            </form>
+        </div>,
+        document.getElementById("modal-root") as HTMLElement
     )
 }
 
