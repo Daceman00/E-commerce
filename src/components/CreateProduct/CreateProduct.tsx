@@ -1,7 +1,7 @@
 import { Upload, X, Eye, Save, Image as ImageIcon } from "lucide-react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import styles from "./CreateProduct.module.css";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch} from "../../store/store";
 import { closeModal } from "../../features/Modals/ModalSlice";
 import type { ProductItem } from "../../features/Products/ProductTypes";
@@ -9,6 +9,8 @@ import { createPortal } from "react-dom";
 import { useForm } from "react-hook-form";
 import { resolver, type FormValues } from "./CreateProductForm";
 import { useRef } from "react"
+import { createProduct } from "../../features/Products/ProductThunks";
+import type { RootState } from "../../store/store";
 
 
 type CreateProductProps = {
@@ -20,12 +22,28 @@ const CreateProduct = ({products}: CreateProductProps) => {
     const [selectedImage, setSelectedImage] = useState<string>('');
     const [dragOver, setDragOver] = useState(false);
     const dispatch = useDispatch<AppDispatch>()
-    const {register, handleSubmit, formState: {errors}, setValue} = useForm<FormValues>({resolver});
+    const {register, handleSubmit, formState: {errors}, setValue, reset} = useForm<FormValues>({resolver});
     const fileInputRef = useRef<HTMLInputElement | null>(null);
+    
+    const { createStatus } = useSelector((state: RootState) => state.products);
 
     const categories = Array.from(new Set(products.map(product => product.category)));
 
-    const onSubmit = handleSubmit((data) => console.log(data))
+    const onSubmit = handleSubmit((data) => dispatch(createProduct(data)))
+
+    // Handle successful creation
+    useEffect(() => {
+        if (createStatus === 'succeeded') {
+            // Close modal after successful creation
+            dispatch(closeModal());
+            reset()
+        }
+    }, [createStatus, dispatch, reset]);
+
+    // Monitor products array changes
+    useEffect(() => {
+        console.log('Products updated:', products.length);
+    }, [products]);
 
     return createPortal(
         <div className={styles.modalOverlay} >
@@ -237,9 +255,13 @@ const CreateProduct = ({products}: CreateProductProps) => {
                         Cancel
                     </button>
                     <div className={styles.footerActions}>
-                        <button type="submit" className={styles.publishButton}>
+                        <button 
+                            type="submit" 
+                            className={styles.publishButton}
+                            disabled={createStatus === 'loading'}
+                        >
                             <Save size={16} />
-                            Create Product
+                            {createStatus === 'loading' ? 'Creating...' : 'Create Product'}
                         </button>
                     </div>
                 </div>

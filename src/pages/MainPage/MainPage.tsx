@@ -13,7 +13,7 @@ const MainPage = () => {
       <main className={styles.mainContent}>
         <div className={styles.container}>
           <div className={styles.contentPlaceholder}>
-            <h2 className={styles.placeholderTitle}>Main Content Area</h2>
+            <h2 className={styles.placeholderTitle}></h2>
             <p className={styles.placeholderText}>
               <ProductsGrid />
             </p>

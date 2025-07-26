@@ -23,8 +23,17 @@ const ProductsGrid = () => {
   const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const dispatch = useDispatch<AppDispatch>();
-
-  const sliceOptions = [5, 10, 15, 20];
+  const [sliceOptions, setSliceOptions] = useState([5, 10, 20, 30, 50]);
+  
+    useEffect(() => {
+        setSliceOptions(prev =>
+            products.length > prev[prev.length - 1]
+                ? [...prev, products.length]
+                : prev
+        );
+    }, [products.length]);
+    
+  
   const sortOptions = [
       { value: 'featured', label: 'Featured' },
       { value: 'newest', label: 'Newest' },

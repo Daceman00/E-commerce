@@ -21,17 +21,21 @@ const ProductItem: React.FC<ProductItemProps> = ({ product, viewMode, onAddToCar
   
     const renderStars = (rating : number) => {
       const stars = [];
+      if (!rating || isNaN(rating) || rating <= 0) {
+        // Render 5 empty stars if no rating
+        for (let i = 0; i < 5; i++) {
+          stars.push(<Star key={`empty-${i}`} className="star" style={{ color: 'var(--grayish-blue)' }} />);
+        }
+        return stars;
+      }
       const fullStars = Math.floor(rating);
-      
       for (let i = 0; i < fullStars; i++) {
         stars.push(<Star key={i} className="star" fill="currentColor" />);
       }
-      
       const remainingStars = 5 - fullStars;
       for (let i = 0; i < remainingStars; i++) {
         stars.push(<Star key={`empty-${i}`} className="star" style={{ color: 'var(--grayish-blue)' }} />);
       }
-  
       return stars;
     };
   
